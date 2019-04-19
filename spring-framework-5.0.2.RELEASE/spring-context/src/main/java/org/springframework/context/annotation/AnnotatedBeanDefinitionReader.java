@@ -16,9 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
-
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
@@ -32,6 +29,9 @@ import org.springframework.core.env.EnvironmentCapable;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
+import java.util.function.Supplier;
 
 /**
  * Convenient adapter for programmatic registration of annotated bean classes.
@@ -129,6 +129,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * annotated class more than once has no additional effect.
 	 * @param annotatedClasses one or more annotated classes,
 	 * e.g. {@link Configuration @Configuration} classes
+	 * 注册多个bean
 	 */
 	public void register(Class<?>... annotatedClasses) {
 		for (Class<?> annotatedClass : annotatedClasses) {
@@ -140,6 +141,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * Register a bean from the given bean class, deriving its metadata from
 	 * class-declared annotations.
 	 * @param annotatedClass the class of the bean
+	 *  注册单个Bean
 	 */
 	public void registerBean(Class<?> annotatedClass) {
 		doRegisterBean(annotatedClass, null, null, null);
@@ -209,20 +211,24 @@ public class AnnotatedBeanDefinitionReader {
 	 * @param definitionCustomizers one or more callbacks for customizing the
 	 * factory's {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
 	 * @since 5.0
+	 * 开始注册
 	 */
 	<T> void doRegisterBean(Class<T> annotatedClass, @Nullable Supplier<T> instanceSupplier, @Nullable String name,
 			@Nullable Class<? extends Annotation>[] qualifiers, BeanDefinitionCustomizer... definitionCustomizers) {
-
+		//根据Bean创建与之对应的BeanDefinition
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(annotatedClass);
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
 		abd.setInstanceSupplier(instanceSupplier);
+		//解析@Scope()注解
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+		//设置作用域
 		abd.setScope(scopeMetadata.getScopeName());
+		//生成Bean名称
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
-
+		//处理通用注解
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
@@ -240,9 +246,11 @@ public class AnnotatedBeanDefinitionReader {
 		for (BeanDefinitionCustomizer customizer : definitionCustomizers) {
 			customizer.customize(abd);
 		}
-
+		//创建BeanDefinitionHole，对BeanDefinition封装
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+		//创建代理对象
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		//向IOC容器注册Bean信息，之前的处理相当于xml中的解析
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 

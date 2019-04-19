@@ -49,6 +49,10 @@ import org.springframework.util.Assert;
  * @see #getResourceByPath
  * @see GenericApplicationContext
  */
+
+/**
+ * xml配置文件的解析 ，从构造方法开始
+ */
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
 
 	@Nullable
@@ -81,6 +85,8 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 	 * @param configLocation resource location
 	 * @throws BeansException if context creation failed
 	 */
+	//常写的ApplicationContext ac=new ClassPathXmlApplicationContext("classpath:/application.xml");
+	//故事就是从这里开始的
 	public ClassPathXmlApplicationContext(String configLocation) throws BeansException {
 		this(new String[] {configLocation}, true, null);
 	}
@@ -134,13 +140,18 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 	 * @throws BeansException if context creation failed
 	 * @see #refresh()
 	 */
+	//所有的构造最终都会走这个构造方法
 	public ClassPathXmlApplicationContext(
 			String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
 			throws BeansException {
-
+		//这里的super会掉到爷爷的爷爷AbstractApplicationContext的构造器
+		//初始化AbstractApplicationContext的ResourcePatternResolver资源模式解析器和上下文（一般为空）
 		super(parent);
+		//这个方法是爷爷的爸爸AbstractRefreshableConfigApplicationContext的方法,设置配置信息的的定位路径
 		setConfigLocations(configLocations);
+		//是否刷新
 		if (refresh) {
+			//这里调用了爷爷的爷爷AbstractApplicationContext
 			refresh();
 		}
 	}

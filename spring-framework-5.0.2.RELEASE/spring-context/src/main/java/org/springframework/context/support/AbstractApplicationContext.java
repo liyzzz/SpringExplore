@@ -16,21 +16,8 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.CachedIntrospectionResults;
 import org.springframework.beans.factory.BeanFactory;
@@ -79,6 +66,18 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Abstract implementation of the {@link org.springframework.context.ApplicationContext}
@@ -218,6 +217,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * Create a new AbstractApplicationContext with no parent.
 	 */
+	//
 	public AbstractApplicationContext() {
 		this.resourcePatternResolver = getResourcePatternResolver();
 	}
@@ -451,6 +451,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see org.springframework.core.io.support.PathMatchingResourcePatternResolver
 	 */
 	protected ResourcePatternResolver getResourcePatternResolver() {
+		//因为AbstractApplicationContext继承DefaultResourceLoader,所以他也是资源解析器
+		//初始化资源解析器
 		return new PathMatchingResourcePatternResolver(this);
 	}
 
@@ -511,13 +513,23 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		return this.applicationListeners;
 	}
 
+	/**
+	 * 模板方法，规定了IOC容器的启动流程
+	 * 作用：在创建 IOC 容器前，如果已经有容器存在，则需要把已有的容器销毁和
+	 * 关闭，以保证在refresh之后使用的是新建立起来的 IOC容器。它类似于对IOC 容器的重启，在新建立
+	 * 好的容器中对容器进行初始化，对Bean配置资源进行载入。
+	 * @throws BeansException
+	 * @throws IllegalStateException
+	 */
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
+			//准备刷新，获取容器的当前时间，同时给容器设置同步标识
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			//IOC初始化的开始，也是springIOC初始化时序图的核心
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
@@ -604,7 +616,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * <p>Replace any stub property sources with actual instances.
 	 * @see org.springframework.core.env.PropertySource.StubPropertySource
-	 * @see org.springframework.web.context.support.WebApplicationContextUtils#initServletPropertySources
 	 */
 	protected void initPropertySources() {
 		// For subclasses: do nothing by default.
@@ -617,6 +628,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		//refreshBeanFactory()是一个抽象方法。具体的实现交给子类去实现
+		//（既：刚才setConfigLocations(configLocations)的AbstractRefreshableApplicationContext类）
 		refreshBeanFactory();
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		if (logger.isDebugEnabled()) {

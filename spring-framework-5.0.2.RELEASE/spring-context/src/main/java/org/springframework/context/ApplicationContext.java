@@ -55,6 +55,18 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.BeanFactory
  * @see org.springframework.core.io.ResourceLoader
  */
+/**
+ * ApplicationContext继承了 ListableBeanFactory(可序列化的bean)和HierarchicalBeanFactory(有继承关系的Bean)
+ * 而这两个类又是又FactoryBean派生出来的
+ * ApplicationContext是Bean工厂的具体实现，是"完整版"的IOC容器
+ * 从实现的接口上来看
+ * MessageSource 有国际化功能
+ * ApplicationEventPublisher 支持应用事件
+ * ResourcePatternResolver 有访问资源的功能
+ * 从英文名称上来看:应用上下文，是spring容器
+ *
+ */
+
 public interface ApplicationContext extends EnvironmentCapable, ListableBeanFactory, HierarchicalBeanFactory,
 		MessageSource, ApplicationEventPublisher, ResourcePatternResolver {
 

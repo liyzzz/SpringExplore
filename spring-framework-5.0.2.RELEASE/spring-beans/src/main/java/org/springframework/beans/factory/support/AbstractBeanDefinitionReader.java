@@ -26,6 +26,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.EnvironmentCapable;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -210,16 +211,18 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
+		//获取AbstractXmlApplicationContext类的loadBeanDefinitions方法设置的资源加载器
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
 					"Cannot import bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
-
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
+				//String转化成Resource
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				//之后又掉resources参数的loadBeanDefinitions，在子类中实现
 				int loadCount = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					for (Resource resource : resources) {

@@ -112,6 +112,16 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.config.BeanPostProcessor#postProcessAfterInitialization
  * @see DisposableBean#destroy
  * @see org.springframework.beans.factory.support.RootBeanDefinition#getDestroyMethodName
+ *
+ */
+
+
+/**
+ * BeanFactory: Spring IoC 容器的真面目.它定义了 IOC 容器的基本功能规范。
+ * 三个重要的子类：
+ * ListableBeanFactory 可序列化的Bean
+ * HierarchicalBeanFactory 有继承关系的bean
+ * AutowireCapableBeanFactory Bean自动装配的规则
  */
 public interface BeanFactory {
 
@@ -136,6 +146,10 @@ public interface BeanFactory {
 	 * @throws NoSuchBeanDefinitionException if there is no bean definition
 	 * with the specified name
 	 * @throws BeansException if the bean could not be obtained
+	 * 依赖注入在以下两种情况发生：
+	 * 1)、用户第一次调用getBean()方法时，IOC 容器触发依赖注入。
+	 * 2)、当用户在配置文件中将<bean>元素配置了lazy-init=false属性，即让容器在解析注册 Bean定义
+	 * 时进行预实例化，触发依赖注入。
 	 */
 	Object getBean(String name) throws BeansException;
 

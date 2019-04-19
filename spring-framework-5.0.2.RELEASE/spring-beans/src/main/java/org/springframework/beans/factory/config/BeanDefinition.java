@@ -37,6 +37,12 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.support.RootBeanDefinition
  * @see org.springframework.beans.factory.support.ChildBeanDefinition
  */
+
+/**
+ * 在Spring容器启动的过程中，会将Bean解析成Spring内部的BeanDefinition结构
+ * 既BeanDefinition是Spring对Bean的描述
+ */
+
 public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 
 	/**

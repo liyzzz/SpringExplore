@@ -16,8 +16,6 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.ResourceEntityResolver;
@@ -25,6 +23,8 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
+
+import java.io.IOException;
 
 /**
  * Convenient base class for {@link org.springframework.context.ApplicationContext}
@@ -80,17 +80,25 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
 		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
+		//获取BeanDefinitionReader,创建Bean的读取器,并通过回调(构造方法)设置到容器(AbstractApplicationContext)当中去，
+		// 容器使用该读取器读取Bean配置资源
 		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
 		// Configure the bean definition reader with this context's
 		// resource loading environment.
+		//为Bean读取器设置Spring资源加载器。
+		//因为AbstractApplicationContext继承DefaultResourceLoader，所以它本身就是一个资源加载器
 		beanDefinitionReader.setEnvironment(this.getEnvironment());
 		beanDefinitionReader.setResourceLoader(this);
+		//为Bean读取设置SAX(XML解析的替代方法。相比于DOM，SAX是一种速度更快，更有效的方法。它逐行扫描文档，一边扫描一边解析) XML解析器
 		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
 
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
+		//当Bean读取器读取Bean定义的XML资源是，启用XML的教研机制（init）
 		initBeanDefinitionReader(beanDefinitionReader);
+		//Bean读取器真正的实现加载的方法
+		//方法的重载
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 
@@ -117,14 +125,19 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @see #getConfigLocations
 	 * @see #getResources
 	 * @see #getResourcePatternResolver
+	 * XML Bean读取加载Bean配置资源
 	 */
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws BeansException, IOException {
+		//获取配置资源
 		Resource[] configResources = getConfigResources();
 		if (configResources != null) {
+			//调用父类AbstractBeanDefinitionReader读取
 			reader.loadBeanDefinitions(configResources);
 		}
+		//获取setConfigLocation方法设置的资源
 		String[] configLocations = getConfigLocations();
 		if (configLocations != null) {
+			//调用父类AbstractBeanDefinitionReader读取
 			reader.loadBeanDefinitions(configLocations);
 		}
 	}
@@ -137,6 +150,7 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @return an array of Resource objects, or {@code null} if none
 	 * @see #getConfigLocations()
 	 */
+	//在子类中重写
 	@Nullable
 	protected Resource[] getConfigResources() {
 		return null;

@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/**
+ * BeanDefinitionReader 对bean解析成
+ */
 package org.springframework.beans.factory.support;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -36,6 +38,10 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 1.1
  * @see org.springframework.core.io.Resource
+ */
+
+/**
+ * 资源文件读取并转换为 BeanDefinition 的各个功能
  */
 public interface BeanDefinitionReader {
 

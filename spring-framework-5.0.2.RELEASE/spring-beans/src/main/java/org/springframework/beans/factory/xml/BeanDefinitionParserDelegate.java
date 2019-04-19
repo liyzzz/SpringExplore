@@ -16,22 +16,8 @@
 
 package org.springframework.beans.factory.xml;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.BeanMetadataAttribute;
 import org.springframework.beans.BeanMetadataAttributeAccessor;
 import org.springframework.beans.PropertyValue;
@@ -66,6 +52,19 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Stateful delegate class used to parse XML bean definitions.
@@ -409,6 +408,7 @@ public class BeanDefinitionParserDelegate {
 	 * Parses the supplied {@code <bean>} element. May return {@code null}
 	 * if there were errors during parse. Errors are reported to the
 	 * {@link org.springframework.beans.factory.parsing.ProblemReporter}.
+	 * 解析内容
 	 */
 	@Nullable
 	public BeanDefinitionHolder parseBeanDefinitionElement(Element ele, @Nullable BeanDefinition containingBean) {
@@ -433,7 +433,7 @@ public class BeanDefinitionParserDelegate {
 		if (containingBean == null) {
 			checkNameUniqueness(beanName, aliases, ele);
 		}
-
+		//详细的对Bean进行解析
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
 			if (!StringUtils.hasText(beanName)) {
@@ -499,7 +499,7 @@ public class BeanDefinitionParserDelegate {
 	@Nullable
 	public AbstractBeanDefinition parseBeanDefinitionElement(
 			Element ele, String beanName, @Nullable BeanDefinition containingBean) {
-
+		//记录解析的Bean
 		this.parseState.push(new BeanEntry(beanName));
 
 		String className = null;
@@ -513,8 +513,9 @@ public class BeanDefinitionParserDelegate {
 
 		try {
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
-
+			//解析属性
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
+
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 
 			parseMetaElements(ele, bd);
