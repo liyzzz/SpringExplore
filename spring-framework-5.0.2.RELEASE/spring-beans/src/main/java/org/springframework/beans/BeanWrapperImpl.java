@@ -16,6 +16,12 @@
 
 package org.springframework.beans;
 
+import org.springframework.core.ResolvableType;
+import org.springframework.core.convert.Property;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.lang.Nullable;
+import org.springframework.util.ReflectionUtils;
+
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.security.AccessControlContext;
@@ -23,12 +29,6 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-
-import org.springframework.core.ResolvableType;
-import org.springframework.core.convert.Property;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.lang.Nullable;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Default {@link BeanWrapper} implementation that should be sufficient
@@ -99,7 +99,7 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 	 * Create a new BeanWrapperImpl for the given object.
 	 * @param object object wrapped by this BeanWrapper
 	 */
-	public BeanWrapperImpl(Object object) {
+	public  BeanWrapperImpl(Object object) {
 		super(object);
 	}
 
