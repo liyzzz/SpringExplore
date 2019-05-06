@@ -1,4 +1,4 @@
-package com.liyueze.demo.controller;
+package com.liyueze.demo.v1.controller;
 
 import com.liyueze.mvcFrameworkCode.v1.annotation.ControllerV1;
 import com.liyueze.mvcFrameworkCode.v1.annotation.RequestMappingV1;

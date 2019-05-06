@@ -1,6 +1,6 @@
-package com.liyueze.demo.service.Impl;
+package com.liyueze.demo.v1.service.Impl;
 
-import com.liyueze.demo.service.IUserService;
+import com.liyueze.demo.v1.service.IUserService;
 import com.liyueze.mvcFrameworkCode.v1.annotation.ServiceV1;
 
 @ServiceV1
