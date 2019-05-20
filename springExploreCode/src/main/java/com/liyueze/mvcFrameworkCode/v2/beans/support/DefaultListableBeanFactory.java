@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class DefaultListableBeanFactory extends AbstractApplicationContext {
+public abstract class DefaultListableBeanFactory extends AbstractApplicationContext {
 
     //存储注册信息的BeanDefinition
     protected final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<String, BeanDefinition>();
