@@ -21,8 +21,9 @@ import java.io.IOException;
 public class MyAction {
 
 	@AutowiredV2
-	IQueryService queryService;
-	@AutowiredV2 IModifyService modifyService;
+	private IQueryService queryService;
+	@AutowiredV2
+	private IModifyService modifyService;
 
 	@RequestMappingV2("/query.json")
 	public void query(HttpServletRequest request, HttpServletResponse response,
@@ -51,6 +52,12 @@ public class MyAction {
 			@RequestParamV2("name") String name){
 		String result = modifyService.edit(id,name);
 		out(response,result);
+	}
+
+	@RequestMappingV2("/test.json")
+	public void test(@RequestParamV2("id") Integer id, @RequestParamV2("name") String name){
+		String result = modifyService.edit(id,name);
+		System.out.println(result);
 	}
 	
 	
