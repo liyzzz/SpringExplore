@@ -17,5 +17,9 @@ public class BeanWrapper {
         return this.wrappedInstance;
     }
 
+    public Class<?> getWrappedClass(){
+        return this.wrappedInstance.getClass();
+    }
+
 
 }

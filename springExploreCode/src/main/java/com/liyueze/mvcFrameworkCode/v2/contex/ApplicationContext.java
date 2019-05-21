@@ -1,5 +1,8 @@
 package com.liyueze.mvcFrameworkCode.v2.contex;
 
+import com.liyueze.mvcFrameworkCode.v2.annotation.AutowiredV2;
+import com.liyueze.mvcFrameworkCode.v2.annotation.ControllerV2;
+import com.liyueze.mvcFrameworkCode.v2.annotation.ServiceV2;
 import com.liyueze.mvcFrameworkCode.v2.beans.BeanWrapper;
 import com.liyueze.mvcFrameworkCode.v2.beans.config.BeanDefinition;
 import com.liyueze.mvcFrameworkCode.v2.beans.config.BeanFactoryPostProcessor;
@@ -9,6 +12,7 @@ import com.liyueze.mvcFrameworkCode.v2.beans.support.DefaultListableBeanFactory;
 import com.liyueze.mvcFrameworkCode.v2.core.BeanFactory;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +31,11 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
     private final Map<String, Object> earlySingletonObjects = new HashMap<String, Object>(16);
     //用于存放完全初始化好的 bean，从该缓存中取出的 bean 可以直接使用
     private final Map<String, Object> singletonObjects = new ConcurrentHashMap<String, Object>(256);
+    //真正的IOC容器，包括接口名的Bean也会存着
+    private final Map<String, BeanWrapper> factoryBeanInstanceCache = new ConcurrentHashMap<>(16);
+
+    BeanPostProcessor postProcessor=null;
+    BeanFactoryPostProcessor beanFactoryPostProcessor=null;
 
     /**
      * 依赖注入，从这里开始
@@ -36,59 +45,106 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
      */
     @Override
     public Object getBean(String beanName) {
+
+        BeanWrapper instanceBeanWrapper=this.factoryBeanInstanceCache.get(beanName);
+        if(instanceBeanWrapper!=null){
+            return instanceBeanWrapper.getWrappedInstance();
+        }
+        Object instance=null;
         try {
             BeanDefinition beanDefinition = this.beanDefinitionMap.get(beanName);
-            Object instance = null;
             //Spring初始化bean时对外有两个暴露的扩展点（BeanFactoryPostProcessor和BeanPostProcessor）
             //这里逻辑都简化
-            BeanFactoryPostProcessor beanFactoryPostProcessor = (BeanFactoryPostProcessor) getBean(this.beanDefinitionMap.get(BeanFactoryPostProcessor.class.getName()).getFactoryBeanName());
             if (null != beanFactoryPostProcessor) {
                 beanFactoryPostProcessor.postProcessBeanFactory(this);
             }
             //初始化
             instance = instantiateBean(beanName, beanDefinition);
 
-            BeanPostProcessor postProcessor = (BeanPostProcessor) getBean(this.beanDefinitionMap.get(BeanPostProcessor.class.getName()).getFactoryBeanName());
             if (null != postProcessor) {
                 postProcessor.postProcessBeforeInitialization(instance, beanName);
             }
+            //然后会执行bean的init方法等，这里省略
+            if (null != postProcessor) {
+                postProcessor.postProcessAfterInitialization(instance, beanName);
+            }
 
-            //缓存
-            this.earlySingletonObjects.put(beanName,instance);
             //把这个对象封装到BeanWrapper中
             BeanWrapper beanWrapper = new BeanWrapper(instance);
+
             //注入
             populateBean(beanName,new BeanDefinition(),beanWrapper);
+            String className=beanDefinition.getBeanClassName();
+            this.singletonObjects.put(className,beanWrapper.getWrappedInstance());
+            this.earlySingletonObjects.remove(className);
+            this.factoryBeanInstanceCache.put(beanName,beanWrapper);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return instance;
     }
 
-    private void populateBean(String beanName, BeanDefinition beanDefinition, BeanWrapper beanWrapper) {
+    private void populateBean(String beanName, BeanDefinition beanDefinition, BeanWrapper beanWrapper) throws Exception {
+        Class<?> clazz = beanWrapper.getWrappedClass();
+        //判断只有加了注解的类，才执行依赖注入
+        if(!(clazz.isAnnotationPresent(ControllerV2.class) || clazz.isAnnotationPresent(ServiceV2.class))){
+            return;
+        }
+
+        Field[] fields=clazz.getFields();
+        for (Field field : fields) {
+            if(!field.isAnnotationPresent(AutowiredV2.class)){ continue;}
+            AutowiredV2 autowiredV2=field.getAnnotation(AutowiredV2.class);
+            String autowiredBeanName =  autowiredV2.value().trim();
+            if("".equals(autowiredBeanName)){
+                autowiredBeanName = toLowerFirstCase(field.getType().getSimpleName());
+            }
+
+            field.setAccessible(true);
+            String fieldName=field.getType().getName();
+            Object autowiredObject=this.singletonObjects.get(fieldName);
+            if (autowiredObject==null){
+                autowiredObject=this.earlySingletonObjects.get(fieldName);
+                if(autowiredObject==null){
+                    autowiredObject=getBean(autowiredBeanName);
+                }
+            }
+            if(autowiredObject==null){
+                log.info("can not find class autowired:"+fieldName);
+                throw new Exception("未找到注入类型:"+fieldName);
+            }
+            field.set(beanWrapper.getWrappedInstance(),autowiredObject);
+        }
+
     }
+
+
 
     private Object instantiateBean(String beanName, BeanDefinition beanDefinition) {
-        return null;
-    }
-
-
-    /**
-     * 获取单例Bean
-     *
-     * @param beanName
-     * @param allowEarlyReference 是否提前曝光
-     * @return
-     */
-    public Object getSingleton(String beanName, boolean allowEarlyReference) {
-        // 从 singletonObjects 获取实例，singletonObjects 中的实例都是准备好的 bean 实例，可以直接使用
-        Object singletonObject = this.singletonObjects.get(beanName);
-        if (null == singletonObjects && allowEarlyReference) {
-            // 从 earlySingletonObjects 中获取提前曝光的 bean(既只初始化未注入的Bean)
-            singletonObject = this.earlySingletonObjects.get(beanName);
+        String className = beanDefinition.getBeanClassName();
+        Object instance = null;
+        //缓存
+        try {
+            if(this.earlySingletonObjects.containsKey(className)){
+                instance = this.singletonObjects.get(className);;
+            }else{
+                Class clazz=Class.forName(className);
+                instance=clazz.newInstance();
+                this.earlySingletonObjects.put(className,instance);
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
         }
-        return singletonObject;
+
+        return instance;
     }
+
+
 
     /**
      * 从构造方法开始启动
@@ -128,13 +184,22 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
                 log.info("The “" + beanDefinition.getFactoryBeanName() + "” is exists!!");
                 throw new Exception("The “" + beanDefinition.getFactoryBeanName() + "” is exists!!");
             }
-            super.beanDefinitionMap.put(beanDefinition.getBeanName(), beanDefinition);
+            super.beanDefinitionMap.put(beanDefinition.getFactoryBeanName(), beanDefinition);
         }
         //到这里为止，容器初始化完毕
     }
 
     //只处理非延时加载的情况
     private void doAutowired() {
+        //先把需要用的两个扩展点装载好
+        BeanDefinition bfpp=this.beanDefinitionMap.get(toLowerFirstCase(BeanFactoryPostProcessor.class.getSimpleName()));
+        BeanDefinition bpp=this.beanDefinitionMap.get(toLowerFirstCase(BeanPostProcessor.class.getSimpleName()));
+        if(bfpp!=null){
+            beanFactoryPostProcessor =(BeanFactoryPostProcessor)getBean(bfpp.getBeanClassName());
+        }
+        if(bpp!=null){
+            postProcessor=(BeanPostProcessor) getBean(bpp.getBeanClassName());
+        }
         for (Map.Entry<String, BeanDefinition> beanDefinitionEntry : super.beanDefinitionMap.entrySet()) {
             String beanName = beanDefinitionEntry.getKey();
             if (!beanDefinitionEntry.getValue().isLazyInit()) {

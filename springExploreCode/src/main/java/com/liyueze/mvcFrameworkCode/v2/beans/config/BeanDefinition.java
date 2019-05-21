@@ -7,15 +7,12 @@ import lombok.Data;
  */
 @Data
 public class BeanDefinition {
-    //存完成的类名（带包名的）
-    private String beanName;
-    //存工厂中的名字,可重复，表明来源
+    //存完整的类名（带包名的）
+    private String beanClassName;
+    //存工厂中的名字(类名小写)
     private String factoryBeanName;
     private boolean lazyInit = false;
+    //把Spring的Bean单例（这个版本只做单例的处理，不考虑原型）
     private boolean singleton = true;
-    //是否是beanFactoryPostProcessor
-    private boolean beanFactoryPostProcessor=false;
-    //是否是beanPostProcessor
-    private boolean beanPostProcessor=false;
 
 }

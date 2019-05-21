@@ -2,8 +2,6 @@ package com.liyueze.mvcFrameworkCode.v2.beans.support;
 
 
 import com.liyueze.mvcFrameworkCode.v2.beans.config.BeanDefinition;
-import com.liyueze.mvcFrameworkCode.v2.beans.config.BeanFactoryPostProcessor;
-import com.liyueze.mvcFrameworkCode.v2.beans.config.BeanPostProcessor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -61,9 +59,7 @@ public class BeanDefinitionReader {
 
     private BeanDefinition createBeanDefinition(String beanName, String factoryName) {
         BeanDefinition beanDefinition=new BeanDefinition();
-        //将BeanName设置成simpleName
-        beanDefinition.setBeanName(beanName);
-        //将FactoryName设置成完整的类名（带包名）
+        beanDefinition.setBeanClassName(beanName);
         beanDefinition.setFactoryBeanName(factoryName);
         return beanDefinition;
     }
@@ -95,17 +91,7 @@ public class BeanDefinitionReader {
             Class[] interfaces=clazz.getInterfaces();
             for(Class i:interfaces){
                 //如果是多个实现类，只能覆盖(Spring也是如此，这个时候可以自定义名)
-                BeanDefinition beanDefinition=new BeanDefinition();
-                //将BeanName设置成simpleName
-                beanDefinition.setBeanName(i.getName());
-                //将FactoryName设置成完整的类名（带包名）
-                beanDefinition.setFactoryBeanName(beanFactoryName);
-                if(clazz== BeanFactoryPostProcessor.class){
-                    beanDefinition.setBeanFactoryPostProcessor(true);
-                }
-                if(clazz== BeanPostProcessor.class){
-                    beanDefinition.setBeanPostProcessor(true);
-                }
+                BeanDefinition beanDefinition=createBeanDefinition(className,toLowerFistWord(i.getSimpleName()));
                 beanDefinitions.add(beanDefinition);
             }
         } catch (ClassNotFoundException e) {
