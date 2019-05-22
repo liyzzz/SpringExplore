@@ -12,10 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -118,8 +115,10 @@ public class DispatcherServlet extends HttpServlet {
 
     //
     private void initViewResolvers(ApplicationContext applicationContext) {
-        String templateRoot = applicationContext.getConfig().getProperty("templateRoot");
-
+        List<Properties> configs = applicationContext.getConfig();
+        for(Properties config:configs){
+            
+        }
     }
 
     private void initHandlerExceptionResolvers(ApplicationContext applicationContext) {
