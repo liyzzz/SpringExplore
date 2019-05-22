@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -82,6 +83,11 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             e.printStackTrace();
         }
         return instance;
+    }
+
+    @Override
+    public Object getBean(Class beanClazz) {
+        return getBean(toLowerFirstCase(beanClazz.getSimpleName()));
     }
 
     private void populateBean(String beanName, BeanDefinition beanDefinition, BeanWrapper beanWrapper) throws Exception {
@@ -212,4 +218,12 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
         return String.valueOf(chars);
     }
 
+    //返回所有的BeanDefinition的Name
+    public String[] getBeanDefinitionNames() {
+        return this.beanDefinitionMap.keySet().toArray(new String[beanDefinitionMap.size()]);
+    }
+
+    public List<Properties> getConfig(){
+        return reader.getConfig();
+    }
 }

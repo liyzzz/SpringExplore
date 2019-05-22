@@ -7,4 +7,5 @@ public interface BeanFactory {
      * @return
      */
     Object getBean(String beanName);
+    Object getBean(Class beanClazz);
 }

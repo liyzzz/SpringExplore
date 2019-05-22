@@ -17,6 +17,7 @@ import java.util.Properties;
  */
 @Slf4j
 public class BeanDefinitionReader {
+
     private List<Properties> configs = new ArrayList<>();
     List<BeanDefinition> beanDefinitions = new ArrayList<>();
 
@@ -103,5 +104,9 @@ public class BeanDefinitionReader {
 
     private String toLowerFistWord(String simpleName) {
         return simpleName.substring(0,1).toLowerCase()+simpleName.substring(1);
+    }
+
+    public List<Properties> getConfig(){
+        return configs;
     }
 }
