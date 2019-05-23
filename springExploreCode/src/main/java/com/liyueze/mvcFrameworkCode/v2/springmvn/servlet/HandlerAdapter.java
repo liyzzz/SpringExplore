@@ -8,7 +8,7 @@ public class HandlerAdapter {
     public boolean supports(Object handler){ return (handler instanceof HandlerMapping);}
 
     //具体执行HandleMapping中保存的方法
-    ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception{
+    ModelAndView handle(HttpServletRequest request, HttpServletResponse response, HandlerMapping handler) throws Exception{
         return null;
     }
 
