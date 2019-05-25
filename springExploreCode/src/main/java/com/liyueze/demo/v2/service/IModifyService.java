@@ -2,7 +2,6 @@ package com.liyueze.demo.v2.service;
 
 /**
  * 增删改业务
- * @author Tom
  *
  */
 public interface IModifyService {

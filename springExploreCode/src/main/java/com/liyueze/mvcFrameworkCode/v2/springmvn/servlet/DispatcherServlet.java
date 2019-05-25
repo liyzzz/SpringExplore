@@ -50,7 +50,8 @@ public class DispatcherServlet extends HttpServlet {
         //通过从request中拿到URL，去匹配一个HandlerMapping
         HandlerMapping handler = getHandler(req);
         if(handler == null){
-            processDispatchResult(req,resp,new ModelAndView("404"));
+            Model model=new Model();
+            processDispatchResult(req,resp,new ModelAndView("404",model));
             return;
         }
         //根据handleMapping找到对应的handleAdapter
@@ -64,7 +65,10 @@ public class DispatcherServlet extends HttpServlet {
             processDispatchResult(req, resp, modelAndView);
         } catch (Exception e) {
             //异常返回
-            processDispatchResult(req,resp,new ModelAndView("500"));
+            Model model=new Model();
+            model.put("detail","服务器出现了异常");
+            model.put("stackTrace",e.getStackTrace());
+            processDispatchResult(req,resp,new ModelAndView("500",model));
             e.printStackTrace();
         }
     }
@@ -78,7 +82,7 @@ public class DispatcherServlet extends HttpServlet {
             try {
                 String viewName=modelAndView.getViewName();
                 if(viewResolver.support(viewName)){
-                    viewResolver.resolveViewName(viewName,null).render(modelAndView.getModel(),req,resp);
+                    viewResolver.resolveViewName(viewName,null).render(modelAndView.getModel().getModel(),req,resp);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -116,7 +120,7 @@ public class DispatcherServlet extends HttpServlet {
         initRequestToViewNameTranslator(applicationContext);
         //初始化视图转换器，实现
         initViewResolvers(applicationContext);
-        //转发参数缓存器
+        //转发参数缓存器（重定向）
         initFlashMapManager(applicationContext);
 
     }
@@ -131,19 +135,19 @@ public class DispatcherServlet extends HttpServlet {
             if (null == clazz.getAnnotation(ControllerV2.class)) {
                 continue;
             }
-            StringBuffer url = new StringBuffer();
+            String baseUrl="";
             if (clazz.isAnnotationPresent(RequestMappingV2.class)) {
                 RequestMappingV2 requestMappingController = (RequestMappingV2) clazz.getAnnotation(RequestMappingV2.class);
-                url.append("/" + requestMappingController.value());
+                baseUrl="/" + requestMappingController.value();
             }
             Method[] methods = clazz.getDeclaredMethods();
             for (Method method : methods) {
                 if (!method.isAnnotationPresent(RequestMappingV2.class)) {
                     continue;
                 }
-                RequestMappingV2 requestMappingV2Method = (RequestMappingV2) clazz.getAnnotation(RequestMappingV2.class);
-                url.append("/" + requestMappingV2Method.value());
-                String regx = url.toString().replaceAll("\\*", ".*").replaceAll("/+", "/");
+                RequestMappingV2 requestMappingV2Method =method.getAnnotation(RequestMappingV2.class);
+                String url=baseUrl+"/" + requestMappingV2Method.value();
+                String regx = url.replaceAll("\\*", ".*").replaceAll("/+", "/");
                 Pattern pattern = Pattern.compile(regx);
                 handlerMappings.add(new HandlerMapping(pattern, instance, method));
             }

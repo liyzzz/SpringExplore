@@ -209,7 +209,7 @@ public class DispatcherServletV1 extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doGet(req, resp);
+        this.doGet(req, resp);
     }
 
     /**
