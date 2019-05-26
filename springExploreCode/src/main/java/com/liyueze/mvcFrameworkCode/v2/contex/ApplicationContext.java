@@ -3,6 +3,8 @@ package com.liyueze.mvcFrameworkCode.v2.contex;
 import com.liyueze.mvcFrameworkCode.v2.annotation.AutowiredV2;
 import com.liyueze.mvcFrameworkCode.v2.annotation.ControllerV2;
 import com.liyueze.mvcFrameworkCode.v2.annotation.ServiceV2;
+import com.liyueze.mvcFrameworkCode.v2.aop.AopProxy;
+import com.liyueze.mvcFrameworkCode.v2.aop.support.AdvisedSupport;
 import com.liyueze.mvcFrameworkCode.v2.beans.BeanWrapper;
 import com.liyueze.mvcFrameworkCode.v2.beans.config.BeanDefinition;
 import com.liyueze.mvcFrameworkCode.v2.beans.config.BeanFactoryPostProcessor;
@@ -135,6 +137,18 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             } else {
                 Class clazz = Class.forName(beanDefinition.getBeanClassName());
                 instance = clazz.newInstance();
+
+
+                AdvisedSupport advised = instantionAopConfig(beanDefinition);
+                advised.setTargetClass(clazz);
+                advised.setTarget(instance);
+
+                //符合PointCut的规则,就用代理对象代替原来的
+                if(advised.pointCutMatch()) {
+                    instance = createProxy(advised).getProxy();
+                }
+
+
                 this.earlySingletonObjects.put(beanName, instance);
             }
         } catch (ClassNotFoundException e) {
@@ -147,6 +161,8 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
 
         return instance;
     }
+
+
 
 
     /**
@@ -225,5 +241,23 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
 
     public List<Properties> getConfig(){
         return reader.getConfig();
+    }
+
+    /**
+     * 根据BeanDefinition去创建advisedSupport
+     * @param beanDefinition
+     * @return
+     */
+    private AdvisedSupport instantionAopConfig(BeanDefinition beanDefinition) {
+        return null;
+    }
+
+    /**
+     * 根据advised去选择创建时JDK代理还是cglib代理
+     * @param advised
+     * @return
+     */
+    private AopProxy createProxy(AdvisedSupport advised) {
+        return null;
     }
 }
