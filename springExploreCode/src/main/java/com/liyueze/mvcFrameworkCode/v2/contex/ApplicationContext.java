@@ -4,6 +4,7 @@ import com.liyueze.mvcFrameworkCode.v2.annotation.AutowiredV2;
 import com.liyueze.mvcFrameworkCode.v2.annotation.ControllerV2;
 import com.liyueze.mvcFrameworkCode.v2.annotation.ServiceV2;
 import com.liyueze.mvcFrameworkCode.v2.aop.AopProxy;
+import com.liyueze.mvcFrameworkCode.v2.aop.config.AopConfig;
 import com.liyueze.mvcFrameworkCode.v2.aop.support.AdvisedSupport;
 import com.liyueze.mvcFrameworkCode.v2.beans.BeanWrapper;
 import com.liyueze.mvcFrameworkCode.v2.beans.config.BeanDefinition;
@@ -137,9 +138,8 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             } else {
                 Class clazz = Class.forName(beanDefinition.getBeanClassName());
                 instance = clazz.newInstance();
-
-
-                AdvisedSupport advised = instantionAopConfig(beanDefinition);
+                //获取到AdvisedSupport
+                AdvisedSupport advised = instanceAopConfig();
                 advised.setTargetClass(clazz);
                 advised.setTarget(instance);
 
@@ -248,8 +248,22 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
      * @param beanDefinition
      * @return
      */
-    private AdvisedSupport instantionAopConfig(BeanDefinition beanDefinition) {
-        return null;
+    private AdvisedSupport instanceAopConfig() {
+        AopConfig aopConfig=new AopConfig();
+        List<Properties> configs=this.reader.getConfig();
+        for(Properties config:configs){
+            String pointCut=config.getProperty("pointCut");
+            //如果这个配置文件中有切点则这个文件中有AOP的所有配置（自己定义的规则，spring中不是这样的）
+            if(pointCut!=null &&"".equals(pointCut.trim())){
+                aopConfig.setPointCut(pointCut);
+                aopConfig.setAspectClass(config.getProperty("aspectClass"));
+                aopConfig.setAspectBefore(config.getProperty("aspectBefore"));
+                aopConfig.setAspectAfter(config.getProperty("aspectAfter"));
+                aopConfig.setAspectAfterThrow(config.getProperty("aspectAfterThrow"));
+                aopConfig.setAspectAfterThrowingName(config.getProperty("aspectAfterThrowingName"));
+            }
+        }
+        return new AdvisedSupport(aopConfig);
     }
 
     /**
