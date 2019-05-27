@@ -12,7 +12,6 @@ import java.util.Date;
 
 /**
  * 查询业务
- * @author Tom
  *
  */
 @ServiceV2

@@ -6,15 +6,22 @@ import com.liyueze.mvcFrameworkCode.v2.annotation.AutowiredV2;
 import com.liyueze.mvcFrameworkCode.v2.annotation.ControllerV2;
 import com.liyueze.mvcFrameworkCode.v2.annotation.RequestMappingV2;
 import com.liyueze.mvcFrameworkCode.v2.annotation.RequestParamV2;
+import com.liyueze.mvcFrameworkCode.v2.springmvn.servlet.Model;
+import com.liyueze.mvcFrameworkCode.v2.springmvn.servlet.ModelAndView;
+import javafx.scene.input.DataFormat;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.SimpleFormatter;
 
 /**
  * 公布接口url
- * @author Tom
  *
+ *  测试访问：http://localhost:8080/springExplore_war_exploded/web/first.asdf?name=liyueze
  */
 @ControllerV2
 @RequestMappingV2("/web")
@@ -58,6 +65,18 @@ public class MyAction {
 	public void test(@RequestParamV2("id") Integer id, @RequestParamV2("name") String name){
 		String result = modifyService.edit(id,name);
 		System.out.println(result);
+	}
+	// 访问：http://localhost:8080/springExplore_war_exploded/web/first.asdf?name=liyueze
+	@RequestMappingV2("/first*")
+	public ModelAndView first(@RequestParamV2("name") String name, Model model, HttpSession httpSession){
+		SimpleDateFormat dataFormat=new SimpleDateFormat( " yyyy年MM月dd日 " );
+		String result = queryService.query(name);
+		model.put("name",name);
+		model.put("data",dataFormat.format(new Date()));
+		model.put("token",httpSession);
+		ModelAndView modelAndView=new ModelAndView("first");
+		modelAndView.setModel(model);
+		return modelAndView;
 	}
 	
 	

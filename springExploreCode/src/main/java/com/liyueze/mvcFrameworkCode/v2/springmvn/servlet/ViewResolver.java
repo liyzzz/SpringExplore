@@ -25,12 +25,12 @@ public class ViewResolver {
     }
 
     public boolean support(String viewName){
-        File templateFile = new File((templateRootDir.getPath() + "/" + viewName).replaceAll("/+","/"));
-        return templateFile!=null;
+        File templateFile = new File((templateRootDir.getPath() + "/" + viewName+DEFAULT_TEMPLATE_SUFFX).replaceAll("/+","/"));
+        return templateFile.exists();
     }
 
     public View resolveViewName(String viewName, Locale locale){
-        File templateFile = new File((templateRootDir.getPath() + "/" + viewName).replaceAll("/+","/"));
+        File templateFile = new File((templateRootDir.getPath() + "/" + viewName+DEFAULT_TEMPLATE_SUFFX).replaceAll("/+","/"));
         return new View(templateFile);
     }
 }

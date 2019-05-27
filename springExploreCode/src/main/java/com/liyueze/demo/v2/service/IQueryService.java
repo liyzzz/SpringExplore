@@ -2,7 +2,6 @@ package com.liyueze.demo.v2.service;
 
 /**
  * 查询业务
- * @author Tom
  *
  */
 public interface IQueryService {
