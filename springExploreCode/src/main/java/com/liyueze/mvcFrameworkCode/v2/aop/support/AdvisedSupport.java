@@ -29,7 +29,7 @@ public class AdvisedSupport {
     private Object target;
 
     //每个方法的拦截器链
-    private transient Map<Method, List<AspectAdviceTemplate>> methodCache;
+    private transient Map<Method, List<AspectAdviceTemplate>> methodCache=new HashMap<>();
     //切面对象
     private Object aspect;
 

@@ -50,7 +50,7 @@ public class MethodInvocation implements JoinPoint {
     public Object proceed() throws Throwable {
         //如果执行链执行完了（需要被代理方法执行后才能执行的方法（例如after）会被压栈）或执行链为空就调用被代理方法
         if(null==interceptorsAndDynamicMethodMatchers
-                || interceptorsAndDynamicMethodMatchers.size()-1-currentInterceptorIndex>0){
+                || interceptorsAndDynamicMethodMatchers.size()-1-currentInterceptorIndex<=0){
             return this.method.invoke(this.target,this.arguments);
         }
         currentInterceptorIndex++;
@@ -67,17 +67,17 @@ public class MethodInvocation implements JoinPoint {
 
     @Override
     public Object getThis() {
-        return null;
+        return target;
     }
 
     @Override
     public Object[] getArguments() {
-        return new Object[0];
+        return arguments;
     }
 
     @Override
     public Method getMethod() {
-        return null;
+        return method;
     }
 
     @Override

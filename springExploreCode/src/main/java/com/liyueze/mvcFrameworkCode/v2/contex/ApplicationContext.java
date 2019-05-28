@@ -4,6 +4,8 @@ import com.liyueze.mvcFrameworkCode.v2.annotation.AutowiredV2;
 import com.liyueze.mvcFrameworkCode.v2.annotation.ControllerV2;
 import com.liyueze.mvcFrameworkCode.v2.annotation.ServiceV2;
 import com.liyueze.mvcFrameworkCode.v2.aop.AopProxy;
+import com.liyueze.mvcFrameworkCode.v2.aop.CglibAopProxy;
+import com.liyueze.mvcFrameworkCode.v2.aop.JdkDynamicAopProxy;
 import com.liyueze.mvcFrameworkCode.v2.aop.config.AopConfig;
 import com.liyueze.mvcFrameworkCode.v2.aop.support.AdvisedSupport;
 import com.liyueze.mvcFrameworkCode.v2.beans.BeanWrapper;
@@ -59,6 +61,9 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             BeanDefinition beanDefinition = this.beanDefinitionMap.get(beanName);
             //Spring初始化bean时对外有两个暴露的扩展点（BeanFactoryPostProcessor和BeanPostProcessor）
             //这里逻辑都简化
+            if (beanDefinition == null) {
+                throw new Exception("未找到beanDefinition:" + beanName);
+            }
             if (null != beanFactoryPostProcessor) {
                 beanFactoryPostProcessor.postProcessBeanFactory(this);
             }
@@ -74,7 +79,7 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             }
 
             //把这个对象封装到BeanWrapper中
-            BeanWrapper beanWrapper = new BeanWrapper(instance);
+            BeanWrapper beanWrapper = new BeanWrapper(instance,beanDefinition.getBeanClassName());
 
             //注入
             populateBean(beanName, new BeanDefinition(), beanWrapper);
@@ -120,7 +125,7 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
                 log.info("can not find class autowired:" + autowiredBeanName);
                 throw new Exception("未找到注入类型:" + autowiredBeanName);
             }
-            field.set(beanWrapper.getWrappedInstance(), autowiredObject);
+            field.set(getSingletonObject(beanName), autowiredObject);
         }
 
     }
@@ -141,21 +146,21 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             String name = toLowerFirstCase(beanClassName.substring(beanClassName.lastIndexOf('.') + 1));
             //看接口和实现类那个先创建，那个先创建就取那个
             instance = getSingletonObject(name);
-            if(instance==null) {
-                Class clazz = Class.forName(beanDefinition.getBeanClassName());
+            Class clazz = Class.forName(beanDefinition.getBeanClassName());
+            if (instance == null) {
                 instance = clazz.newInstance();
-                //获取到AdvisedSupport
-                AdvisedSupport advised = instanceAopConfig();
-                advised.setTargetClass(clazz);
-                advised.setTarget(instance);
-
-                //符合PointCut的规则,就用代理对象代替原来的
-                if(advised.pointCutMatch()) {
-                    instance = createProxy(advised).getProxy();
-                }
-
-
                 this.earlySingletonObjects.put(beanName, instance);
+            }else if(!beanClassName.equals(name)){
+                this.earlySingletonObjects.put(beanName, instance);
+            }
+            //获取到AdvisedSupport
+            AdvisedSupport advised = instanceAopConfig();
+            advised.setTargetClass(clazz);
+            advised.setTarget(instance);
+            //符合PointCut的规则,就用代理对象代替原来的
+            if (advised.pointCutMatch()) {
+                instance = createProxy(advised).getProxy();
+                this.earlySingletonObjects.put(beanName+"_proxy", instance);
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -253,12 +258,12 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
      * @return
      */
     private AdvisedSupport instanceAopConfig() {
-        AopConfig aopConfig=new AopConfig();
-        List<Properties> configs=this.reader.getConfig();
-        for(Properties config:configs){
-            String pointCut=config.getProperty("pointCut");
+        AopConfig aopConfig = new AopConfig();
+        List<Properties> configs = this.reader.getConfig();
+        for (Properties config : configs) {
+            String pointCut = config.getProperty("pointCut");
             //如果这个配置文件中有切点则这个文件中有AOP的所有配置（自己定义的规则，spring中不是这样的）
-            if(pointCut!=null &&"".equals(pointCut.trim())){
+            if (pointCut != null && !"".equals(pointCut.trim())) {
                 aopConfig.setPointCut(pointCut);
                 aopConfig.setAspectClass(config.getProperty("aspectClass"));
                 aopConfig.setAspectBefore(config.getProperty("aspectBefore"));
@@ -267,9 +272,9 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
                 aopConfig.setAspectAfterThrowingName(config.getProperty("aspectAfterThrowingName"));
             }
         }
-        String aspectClass=aopConfig.getAspectClass();
-        String aspectName=toLowerFirstCase(aspectClass.substring(aspectClass.lastIndexOf('.')));
-        return new AdvisedSupport(aopConfig,getBean(aspectName));
+        String aspectClass = aopConfig.getAspectClass();
+        String aspectName = toLowerFirstCase(aspectClass.substring(aspectClass.lastIndexOf('.') + 1));
+        return new AdvisedSupport(aopConfig, getSingletonObject(aspectName));
     }
 
     /**
@@ -279,6 +284,10 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
      * @return
      */
     private AopProxy createProxy(AdvisedSupport advised) {
-        return null;
+        if (advised.getTargetClass() != null && advised.getTargetClass().getInterfaces() != null
+                && advised.getTargetClass().getInterfaces().length > 0) {
+            return new JdkDynamicAopProxy(advised);
+        }
+        return new CglibAopProxy(advised);
     }
 }
