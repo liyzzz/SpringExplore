@@ -1,4 +1,6 @@
-package com.liyueze.mvcFrameworkCode.v2.aop.intercept;
+package com.liyueze.mvcFrameworkCode.v2.aop.intercepter;
+
+import com.liyueze.mvcFrameworkCode.v2.aop.invocation.MethodInvocation;
 
 /**
  * 方法拦截器标准

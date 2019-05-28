@@ -2,8 +2,8 @@ package com.liyueze.mvcFrameworkCode.v2.aop;
 
 
 
-import com.liyueze.mvcFrameworkCode.v2.aop.AopProxy;
-import com.liyueze.mvcFrameworkCode.v2.aop.intercept.MethodInvocation;
+import com.liyueze.mvcFrameworkCode.v2.aop.intercepter.AspectAdviceTemplate;
+import com.liyueze.mvcFrameworkCode.v2.aop.invocation.MethodInvocation;
 import com.liyueze.mvcFrameworkCode.v2.aop.support.AdvisedSupport;
 
 import java.lang.reflect.InvocationHandler;
@@ -18,8 +18,8 @@ public class JdkDynamicAopProxy implements AopProxy,InvocationHandler{
 
     private AdvisedSupport advised;
 
-    public JdkDynamicAopProxy(AdvisedSupport config){
-        this.advised = config;
+    public JdkDynamicAopProxy(AdvisedSupport advised){
+        this.advised = advised;
     }
 
     @Override
@@ -37,15 +37,15 @@ public class JdkDynamicAopProxy implements AopProxy,InvocationHandler{
      *
      * @param proxy 生成的代理对象
      * @param method 需要代理的方法
-     * @param args 参数
+     * @param args 需要代理的方法的参数
      * @return
      * @throws Throwable
      */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         //获得被代理方法的执行链
-        List<Object> interceptorsAndDynamicMethodMatchers=this.advised.getInterceptorsAndDynamicInterceptionAdvice(method,this.advised.getTargetClass());
-        MethodInvocation invocation = new MethodInvocation(proxy,null,method,args,this.advised.getTargetClass(),interceptorsAndDynamicMethodMatchers);
+        List<AspectAdviceTemplate> interceptorsAndDynamicMethodMatchers=this.advised.getInterceptorsAndDynamicInterceptionAdvice(method,this.advised.getTargetClass());
+        MethodInvocation invocation = new MethodInvocation(proxy,this.advised.getTarget(),method,args,this.advised.getTargetClass(),interceptorsAndDynamicMethodMatchers);
         return invocation.proceed();
     }
 }

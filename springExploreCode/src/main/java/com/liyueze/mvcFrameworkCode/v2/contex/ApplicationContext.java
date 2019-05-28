@@ -137,14 +137,10 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
         Object instance = null;
         //缓存
         try {
-            //判断是不是接口
             String beanClassName = beanDefinition.getBeanClassName();
             String name = toLowerFirstCase(beanClassName.substring(beanClassName.lastIndexOf('.') + 1));
-            if (!beanName.equals(name)) {
-                //如果是接口的处理
-                instance = getSingletonObject(name);
-
-            }
+            //看接口和实现类那个先创建，那个先创建就取那个
+            instance = getSingletonObject(name);
             if(instance==null) {
                 Class clazz = Class.forName(beanDefinition.getBeanClassName());
                 instance = clazz.newInstance();
@@ -254,7 +250,6 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
     /**
      * 根据BeanDefinition去创建advisedSupport
      *
-     * @param beanDefinition
      * @return
      */
     private AdvisedSupport instanceAopConfig() {
@@ -272,7 +267,9 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
                 aopConfig.setAspectAfterThrowingName(config.getProperty("aspectAfterThrowingName"));
             }
         }
-        return new AdvisedSupport(aopConfig);
+        String aspectClass=aopConfig.getAspectClass();
+        String aspectName=toLowerFirstCase(aspectClass.substring(aspectClass.lastIndexOf('.')));
+        return new AdvisedSupport(aopConfig,getBean(aspectName));
     }
 
     /**
