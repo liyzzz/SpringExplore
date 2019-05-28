@@ -32,14 +32,14 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
     private BeanDefinitionReader reader;
 
     //存储存放原始的 bean 对象（尚未填充属性），用于解决循环依赖
-    private final Map<String, Object> earlySingletonObjects = new HashMap<String, Object>(16);
+    private final Map<String, Object> earlySingletonObjects = new HashMap<>(16);
     //用于存放完全初始化好的 bean，从该缓存中取出的 bean 可以直接使用
-    private final Map<String, Object> singletonObjects = new ConcurrentHashMap<String, Object>(256);
+    private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
     //真正的IOC容器，包括接口名的Bean也会存着
     private final Map<String, BeanWrapper> factoryBeanInstanceCache = new ConcurrentHashMap<>(16);
 
-    BeanPostProcessor postProcessor = null;
-    BeanFactoryPostProcessor beanFactoryPostProcessor = null;
+    private BeanPostProcessor postProcessor = null;
+    private BeanFactoryPostProcessor beanFactoryPostProcessor = null;
 
     /**
      * 依赖注入，从这里开始
@@ -112,12 +112,9 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             }
 
             field.setAccessible(true);
-            Object autowiredObject = this.singletonObjects.get(autowiredBeanName);
+            Object autowiredObject = getSingletonObject(autowiredBeanName);
             if (autowiredObject == null) {
-                autowiredObject = this.earlySingletonObjects.get(autowiredBeanName);
-                if (autowiredObject == null) {
-                    autowiredObject = getBean(autowiredBeanName);
-                }
+                autowiredObject = getBean(autowiredBeanName);
             }
             if (autowiredObject == null) {
                 log.info("can not find class autowired:" + autowiredBeanName);
@@ -128,14 +125,27 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
 
     }
 
+    public Object getSingletonObject(String name) {
+        Object autowiredObject = this.singletonObjects.get(name);
+        if (autowiredObject == null) {
+            autowiredObject = this.earlySingletonObjects.get(name);
+        }
+        return autowiredObject;
+    }
 
     private Object instantiateBean(String beanName, BeanDefinition beanDefinition) {
         Object instance = null;
         //缓存
         try {
-            if (this.earlySingletonObjects.containsKey(beanName)) {
-                instance = this.earlySingletonObjects.get(beanName);
-            } else {
+            //判断是不是接口
+            String beanClassName = beanDefinition.getBeanClassName();
+            String name = toLowerFirstCase(beanClassName.substring(beanClassName.lastIndexOf('.') + 1));
+            if (!beanName.equals(name)) {
+                //如果是接口的处理
+                instance = getSingletonObject(name);
+
+            }
+            if(instance==null) {
                 Class clazz = Class.forName(beanDefinition.getBeanClassName());
                 instance = clazz.newInstance();
                 //获取到AdvisedSupport
@@ -161,8 +171,6 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
 
         return instance;
     }
-
-
 
 
     /**
@@ -211,8 +219,8 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
     //只处理非延时加载的情况
     private void doAutowired() {
         //先把需要用的两个扩展点装载好
-        beanFactoryPostProcessor = (BeanFactoryPostProcessor) getBean(toLowerFirstCase(BeanFactoryPostProcessor.class.getSimpleName()));
-        postProcessor = (BeanPostProcessor) getBean(toLowerFirstCase(BeanPostProcessor.class.getSimpleName()));
+        beanFactoryPostProcessor = (BeanFactoryPostProcessor) getBean(BeanFactoryPostProcessor.class);
+        postProcessor = (BeanPostProcessor) getBean(BeanPostProcessor.class);
         for (Map.Entry<String, BeanDefinition> beanDefinitionEntry : super.beanDefinitionMap.entrySet()) {
             String beanName = beanDefinitionEntry.getKey();
             if (!beanDefinitionEntry.getValue().isLazyInit()) {
@@ -239,12 +247,13 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
         return this.beanDefinitionMap.keySet().toArray(new String[beanDefinitionMap.size()]);
     }
 
-    public List<Properties> getConfig(){
+    public List<Properties> getConfig() {
         return reader.getConfig();
     }
 
     /**
      * 根据BeanDefinition去创建advisedSupport
+     *
      * @param beanDefinition
      * @return
      */
@@ -268,6 +277,7 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
 
     /**
      * 根据advised去选择创建时JDK代理还是cglib代理
+     *
      * @param advised
      * @return
      */
