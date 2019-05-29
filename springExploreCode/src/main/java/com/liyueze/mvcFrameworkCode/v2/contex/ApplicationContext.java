@@ -117,7 +117,12 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             }
 
             field.setAccessible(true);
-            Object autowiredObject = getSingletonObject(autowiredBeanName);
+            //先尝试去取代理的注入对象
+            Object autowiredObject = getSingletonObject(autowiredBeanName+"_proxy");
+            if(autowiredObject==null){
+                //如果代理的注入对象没有则取正常的对象
+                autowiredObject=getSingletonObject(autowiredBeanName);
+            }
             if (autowiredObject == null) {
                 autowiredObject = getBean(autowiredBeanName);
             }
@@ -150,17 +155,10 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             if (instance == null) {
                 instance = clazz.newInstance();
                 this.earlySingletonObjects.put(beanName, instance);
+                instance = getProxyObject(beanName, instance, clazz);
             }else if(!beanClassName.equals(name)){
                 this.earlySingletonObjects.put(beanName, instance);
-            }
-            //获取到AdvisedSupport
-            AdvisedSupport advised = instanceAopConfig();
-            advised.setTargetClass(clazz);
-            advised.setTarget(instance);
-            //符合PointCut的规则,就用代理对象代替原来的
-            if (advised.pointCutMatch()) {
-                instance = createProxy(advised).getProxy();
-                this.earlySingletonObjects.put(beanName+"_proxy", instance);
+                instance = getProxyObject(beanName, instance, clazz);
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -170,6 +168,29 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
             e.printStackTrace();
         }
 
+        return instance;
+    }
+
+    private Object getProxyObject(String beanName, Object instance, Class clazz) {
+        //获取到AdvisedSupport
+        AopConfig aopConfig = instanceAopConfig();
+        String aspectClass = aopConfig.getAspectClass();
+        if(aspectClass==null){
+            return instance;
+        }
+        String aspectName = toLowerFirstCase(aspectClass.substring(aspectClass.lastIndexOf('.') + 1));
+        //如果beanName就是切面名，不可以创建代理(如果可创建就会变成没有出口的递归)
+        if(aspectName.equals(beanName)){
+           return instance;
+        }
+        AdvisedSupport advised= new AdvisedSupport(aopConfig, getBean(aspectName));
+        advised.setTargetClass(clazz);
+        advised.setTarget(instance);
+        //符合PointCut的规则,就用代理对象代替原来的
+        if (advised.pointCutMatch()) {
+            instance = createProxy(advised).getProxy();
+            this.earlySingletonObjects.put(beanName+"_proxy", instance);
+        }
         return instance;
     }
 
@@ -257,7 +278,7 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
      *
      * @return
      */
-    private AdvisedSupport instanceAopConfig() {
+    private AopConfig instanceAopConfig() {
         AopConfig aopConfig = new AopConfig();
         List<Properties> configs = this.reader.getConfig();
         for (Properties config : configs) {
@@ -272,9 +293,7 @@ public class ApplicationContext extends DefaultListableBeanFactory implements Be
                 aopConfig.setAspectAfterThrowingName(config.getProperty("aspectAfterThrowingName"));
             }
         }
-        String aspectClass = aopConfig.getAspectClass();
-        String aspectName = toLowerFirstCase(aspectClass.substring(aspectClass.lastIndexOf('.') + 1));
-        return new AdvisedSupport(aopConfig, getSingletonObject(aspectName));
+        return aopConfig;
     }
 
     /**

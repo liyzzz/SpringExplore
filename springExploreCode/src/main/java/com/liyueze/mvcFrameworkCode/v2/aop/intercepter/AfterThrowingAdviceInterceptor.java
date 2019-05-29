@@ -21,13 +21,13 @@ public class AfterThrowingAdviceInterceptor extends AspectAdviceTemplate  {
             return mi.proceed();
         }catch (Throwable e){
             invokeAdviceMethod(mi,null,e.getCause());
-            throw e;
+            return null;
         }
     }
 
 
     @Override
     protected int getSortIndex() {
-        return 1;
+        return 2;
     }
 }

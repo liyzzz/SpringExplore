@@ -37,4 +37,9 @@ public class QueryService implements IQueryService {
 		return "{liyueze,liyzzz,Analyze}";
 	}
 
+	@Override
+	public String queryError(){
+		int i=1/0;
+		return "这个方法是故意抛错用来测试的";
+	}
 }
