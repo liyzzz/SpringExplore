@@ -27,6 +27,6 @@ public class AfterReturningAdviceInterceptor extends AspectAdviceTemplate  {
 
     @Override
     protected int getSortIndex() {
-        return 2;
+        return 1;
     }
 }

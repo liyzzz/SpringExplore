@@ -15,6 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 public class ModifyService implements IModifyService {
 	@AutowiredV2
 	private IQueryService iQueryService;
+	@AutowiredV2
+	private DeleteService deleteService;
+
 	/**
 	 * 增加
 	 */
@@ -36,7 +39,8 @@ public class ModifyService implements IModifyService {
 	 * 删除
 	 */
 	public String remove(Integer id) {
-		return "modifyService id=" + id;
+		System.out.println("---------------");
+		return deleteService.deleteById(id);
 	}
 	
 }

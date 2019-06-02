@@ -12,4 +12,6 @@ public interface IQueryService {
 	public String query(String name);
 
 	public String queryAll();
+
+	public String queryError();
 }
