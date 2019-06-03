@@ -17,9 +17,9 @@
 	<!-- 配置事务通知属性-->
 	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
 		<tx:attributes>
-			<tx:method name="add*" propagation="REQUIRED" rollback-for="Exception,RuntimeException,SQLException"/>
-			<tx:method name="remove*" propagation="REQUIRED" rollback-for="Exception,RuntimeException,SQLException"/>
-			<tx:method name="edit*" propagation="REQUIRED" rollback-for="Exception,RuntimeException,SQLException"/>
+			<tx:method name="add*" propagation="REQUIRED" isolation="DEFAULT" rollback-for="Exception,RuntimeException,SQLException"/>
+			<tx:method name="remove*" propagation="REQUIRED" isolation="DEFAULT" rollback-for="Exception,RuntimeException,SQLException"/>
+			<tx:method name="edit*" propagation="REQUIRED" isolation="DEFAULT" rollback-for="Exception,RuntimeException,SQLException"/>
 			<tx:method name="login" propagation="NOT_SUPPORTED"/>
 			<tx:method name="query*" read-only="true"/>
 		</tx:attributes>
