@@ -24,10 +24,10 @@
     * 7、 Spring Bean 的生命周期？  
     这个应该根据Bean的作用域来回答  
    1.singleton：和spring容器同生共死  
-   2.prototype：需要时创建，对象不可达则被回收
-   3.request：一次request中存活。为每一个来自客户端的网络请求创建一个实例，在请求完成以后，bean会失效并被垃圾回收器回收  
-   4.Session：与session一致
-   5.global-session： 与 Portlet 应用相关。地位相当于 Servlet 中的 session
+   2.prototype：需要时创建，对象不可达则被回收    
+   3.request：一次request中存活。为每一个来自客户端的网络请求创建一个实例，在请求完成以后，bean会失效并被垃圾回收器回收      
+   4.Session：与session一致      
+   5.global-session： 与 Portlet 应用相关。地位相当于 Servlet 中的 session     
    
     
     
