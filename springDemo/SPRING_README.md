@@ -28,6 +28,11 @@
    3.request：一次request中存活。为每一个来自客户端的网络请求创建一个实例，在请求完成以后，bean会失效并被垃圾回收器回收      
    4.Session：与session一致      
    5.global-session： 与 Portlet 应用相关。地位相当于 Servlet 中的 session     
-   
-    
+   * 8、什么是Spring inner beans？  
+    如果一个Bean仅应用于另个Bean中，则应该以内部bean的形式出现,类似于内部类
+    * 9、Spring 框架中的单例 Beans 是线程安全的么？  
+    从spring的角度来说，spring没有对多线程的线程安全做任何封装。每个Bean的线程安全都是由开发者自己去考虑。   
+    从线程安全的角度来说，只有Bean为单例并且在对单例做修改时才会有线程安全问题。一般来说像controller，dao,service等Bean都是没有可变化状态的，所以某种程度上来说Bean是安全的。
+    * 10、在 Spring 中可以注入 null 或空字符串吗？  
+    完全可以
     
